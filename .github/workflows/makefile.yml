@@ -1,0 +1,40 @@
+name: Build PluginManager
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang ldid dpkg-dev git curl xz-utils
+
+      - name: 安装 theos
+        run: |
+          sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos
+          sudo mkdir -p /opt/theos/sdks
+          sudo curl -fL -o /tmp/sdk.tar.xz \
+            "https://github.com/theos/sdks/releases/download/17.5/iPhoneOS17.5.sdk.tar.xz"
+          sudo tar -C /opt/theos/sdks -xJf /tmp/sdk.tar.xz
+
+      - name: 编译
+        run: |
+          export THEOS=/opt/theos
+          make clean
+          make package
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: PluginManager
+          path: |
+            packages/*.deb
+            .theos/obj/debug/arm64e/PluginManager.dylib
+          if-no-files-found: error
