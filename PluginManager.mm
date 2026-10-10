@@ -397,7 +397,7 @@ static NSArray<PMDylibInfo *> *PMCollectDylibs(void) {
     scroll.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:scroll];
 
-    CGFloat y = 16.0f, w = self.view.bounds.size.width - 32.0f;
+__block CGFloat y = 16.0f, w = self.view.bounds.size.width - 32.0f;
     void (^addRow)(NSString *, NSString *) = ^(NSString *key, NSString *val) {
         UILabel *k = [[UILabel alloc] initWithFrame:CGRectMake(16, y, 110, 18)];
         k.text = key;
