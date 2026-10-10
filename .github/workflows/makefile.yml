@@ -22,11 +22,26 @@ jobs:
 
       - name: 安装 theos
         run: |
-          sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos
+          set -e
+          sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos || \
+            sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos
+          echo "== theos cloned =="
           sudo mkdir -p /opt/theos/sdks
-          sudo curl -fL -o /tmp/sdk.tar.xz \
-            "https://github.com/theos/sdks/releases/download/17.5/iPhoneOS17.5.sdk.tar.xz"
+          # 从 theos/sdks 的 latest release 动态获取 SDK 地址（不猜版本号，避免 404）
+          SDK_URL="$(curl -s https://api.github.com/repos/theos/sdks/releases/latest | \
+            grep -o '"browser_download_url": *"[^"]*iPhoneOS[0-9][^"]*\.sdk\.tar\.xz"' | \
+            head -1 | sed 's/.*: *"//; s/"$//')"
+          echo "SDK_URL=${SDK_URL}"
+          if [ -z "$SDK_URL" ]; then
+            echo "== failed to resolve SDK URL, raw API response: =="
+            curl -s https://api.github.com/repos/theos/sdks/releases/latest
+            exit 1
+          fi
+          sudo curl -fL -o /tmp/sdk.tar.xz "$SDK_URL"
+          ls -lh /tmp/sdk.tar.xz
           sudo tar -C /opt/theos/sdks -xJf /tmp/sdk.tar.xz
+          echo "== installed SDKs: =="
+          ls /opt/theos/sdks
 
       - name: 编译
         run: |
