@@ -6,42 +6,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # macOS runner 自带 Xcode（clang + iOS SDK），绕开 theos 在 Linux 上
+    # 需要额外下载交叉工具链的问题，同时支持 arm64e 原生编译
+    runs-on: macos-15
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装依赖
+      - name: 安装依赖 (ldid 与 dpkg-deb)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang dpkg-dev git curl xz-utils
-          # Ubuntu 官方源没有 ldid 包，使用 Procursus 的 Linux 预编译版
-          sudo curl -fL -o /usr/local/bin/ldid \
-            "https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_linux_x86_64"
-          sudo chmod +x /usr/local/bin/ldid
+          brew install ldid dpkg
 
       - name: 安装 theos
         run: |
-          set -e
-          sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos || \
-            sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos
-          echo "== theos cloned =="
-          sudo mkdir -p /opt/theos/sdks
-          # 从 theos/sdks 的 latest release 动态获取 SDK 地址（不猜版本号，避免 404）
-          SDK_URL="$(curl -s https://api.github.com/repos/theos/sdks/releases/latest | \
-            grep -o '"browser_download_url": *"[^"]*iPhoneOS[0-9][^"]*\.sdk\.tar\.xz"' | \
-            head -1 | sed 's/.*: *"//; s/"$//')"
-          echo "SDK_URL=${SDK_URL}"
-          if [ -z "$SDK_URL" ]; then
-            echo "== failed to resolve SDK URL, raw API response: =="
-            curl -s https://api.github.com/repos/theos/sdks/releases/latest
-            exit 1
-          fi
-          sudo curl -fL -o /tmp/sdk.tar.xz "$SDK_URL"
-          ls -lh /tmp/sdk.tar.xz
-          sudo tar -C /opt/theos/sdks -xJf /tmp/sdk.tar.xz
-          echo "== installed SDKs: =="
-          ls /opt/theos/sdks
+          sudo git clone --recursive --depth 1 https://github.com/theos/theos.git /opt/theos
+          sudo chown -R "$(whoami)" /opt/theos
 
       - name: 编译
         run: |
