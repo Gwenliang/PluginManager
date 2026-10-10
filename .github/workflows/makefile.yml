@@ -14,7 +14,11 @@ jobs:
       - name: 安装依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang ldid dpkg-dev git curl xz-utils
+          sudo apt-get install -y clang dpkg-dev git curl xz-utils
+          # Ubuntu 官方源没有 ldid 包，使用 Procursus 的 Linux 预编译版
+          sudo curl -fL -o /usr/local/bin/ldid \
+            "https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_linux_x86_64"
+          sudo chmod +x /usr/local/bin/ldid
 
       - name: 安装 theos
         run: |
