@@ -1,0 +1,8 @@
+Package: com.qq.pluginmanager
+Name: QQ Plugin Manager (巨魔插件管理器)
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: 在 QQ 内查看所有已注入/已安装插件（列表、详情、加载状态、禁用引导）。悬浮球入口，注入即用，零依赖。
+Maintainer: user
+Author: user
+Section: Tweaks
